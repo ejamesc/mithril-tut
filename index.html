@@ -1,13 +1,73 @@
 <!doctype html>
 <html>
-<head>
-  <title>Todo app</title>
-  <script src="mithril.min.js"></script>
-  <script>
-  //app goes here
-  </script>
-</head>
-<body>
+  <head>
+    <title>Todo app</title>
+    <script src="mithril/mithril.min.js"></script>
+    <script>
+      // An empty Mithril component.
+      var todo = {};
 
-</body>
+      // Add properties to the Todo class.
+      // This is a model entity. Normally model entities are reusable and live outside of components.
+      // Here we have the model namespaced under the todo component for simplicity's sake.
+      todo.Todo = function(data) {
+        this.description = m.prop(data.description);
+        this.done = m.prop(false); // This is a getter-setter with the default value of false.
+      }
+
+      // The TodoList class is a list of Todo objects.
+      todo.TodoList = Array;
+
+      // Define the view-model. The view-model keeps track of UI state
+      todo.vm = {
+        init: function() {
+          // Running list of todos
+          todo.vm.list = new todo.TodoList();
+
+          // A slot to store the name of a new variable before it's created
+          todo.vm.description = m.prop('');
+
+          // Adds a todo to the list, clears the description field for the user.
+          todo.vm.add = function() {
+          if (todo.vm.description()) {
+            todo.vm.list.push(new todo.Todo({description: todo.vm.description()}));
+            todo.vm.description("");
+          }
+          }
+        }
+      }
+
+      // A controller in Mithril just exposes a slice of model layer that relates to the UI in the view.
+      todo.controller = function() {
+        todo.vm.init();
+      }
+
+      // A view can be passed into a m.render() to be rendered in the DOM.
+      todo.view = function() {
+        return m("html", [
+          m("body", [
+            // We bind this to the vm's description
+            // onchange: 'with the attribute value, set todo.vm.description'
+            m("input", {onchange: m.withAttr("value", todo.vm.description), value: todo.vm.description()}),
+            m("button", {onclick: todo.vm.add}, "Add"),
+            m("table", [
+              todo.vm.list.map(function(task, index) {
+                return m("tr", [
+                m("td", [m("input[type=checkbox]", {onclick: m.withAttr("checked", task.done), checked: task.done()})
+                  ]),
+                  m("td", task.description()),
+                ])
+              })
+            ])
+          ])
+        ]);
+      };
+
+      m.mount(document, {controller: todo.controller, view: todo.view});
+
+    </script>
+  </head>
+  <body>
+
+  </body>
 </html>
